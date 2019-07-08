@@ -35,11 +35,15 @@ public class BTCMarketsStreamingMarketDataService implements StreamingMarketData
     String marketId = BTCMarketsStreamingAdapters.adaptCurrencyPairToMarketId(currencyPair);
     return service
         .subscribeChannel(CHANNEL_ORDERBOOK, marketId)
-        .map(
+        .flatMap(
             node -> {
               BTCMarketsWebSocketOrderbookMessage orderEvent =
                   mapper.treeToValue(node, BTCMarketsWebSocketOrderbookMessage.class);
-              return this.handleOrderbookMessage(orderEvent);
+              if (orderEvent.marketId != null && orderEvent.marketId.equals(marketId)) {
+                return Observable.just(this.handleOrderbookMessage(orderEvent));
+              } else {
+                return Observable.empty();
+              }
             });
   }
 
