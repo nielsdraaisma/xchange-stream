@@ -29,6 +29,9 @@
         <module>xchange-binance</module>
         <module>xchange-hitbtc</module>
         <module>xchange-kraken</module>
+        <module>xchange-btcmarkets</module>
+        <module>xchange-coinjar</module>
+        <module>xchange-independentreserve</module>
     </modules>
 
     <name>xchange-stream</name>
