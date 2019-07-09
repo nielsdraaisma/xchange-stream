@@ -11,10 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CoinjarStreamingService extends JsonNettyStreamingService {
 
   private static final Logger LOG = LoggerFactory.getLogger(CoinjarStreamingService.class);
+  private final AtomicInteger refCount = new AtomicInteger();
 
   private String apiKey;
 
@@ -42,7 +44,7 @@ public class CoinjarStreamingService extends JsonNettyStreamingService {
   @Override
   public String getSubscribeMessage(String channelName, Object... args) throws IOException {
     return objectMapper.writeValueAsString(
-        new CoinjarWebSocketSubscribeMessage(channelName, apiKey));
+        new CoinjarWebSocketSubscribeMessage(channelName, apiKey, refCount.incrementAndGet()));
   }
 
   @Override

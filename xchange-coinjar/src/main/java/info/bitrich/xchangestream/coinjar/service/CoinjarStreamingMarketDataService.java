@@ -1,8 +1,10 @@
-package info.bitrich.xchangestream.coinjar;
+package info.bitrich.xchangestream.coinjar.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import info.bitrich.xchangestream.coinjar.CoinjarStreamingAdapters;
+import info.bitrich.xchangestream.coinjar.CoinjarStreamingService;
 import info.bitrich.xchangestream.coinjar.dto.CoinjarWebSocketBookEvent;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import info.bitrich.xchangestream.service.netty.StreamingObjectMapperHelper;
@@ -64,14 +66,12 @@ public class CoinjarStreamingMarketDataService implements StreamingMarketDataSer
             CoinjarStreamingAdapters.toLimitOrders(
                 event.payload.asks, pairFromEvent, Order.OrderType.ASK));
         break;
-
     }
     return new OrderBook(
         null,
         Lists.newArrayList(asks.get(pairFromEvent).values()),
         Lists.newArrayList(bids.get(pairFromEvent).values()));
   }
-
 
   @Override
   public Observable<OrderBook> getOrderBook(CurrencyPair currencyPair, Object... args) {
@@ -80,12 +80,18 @@ public class CoinjarStreamingMarketDataService implements StreamingMarketDataSer
     this.bids.put(currencyPair, Maps.newTreeMap((o1, o2) -> Math.negateExact(o1.compareTo(o2))));
     return service
         .subscribeChannel(channelName)
+        .doOnError(
+            throwable -> {
+              logger.warn(
+                  "encoutered error while subscribing to channel " + channelName, throwable);
+            })
         .map(
             node -> {
               CoinjarWebSocketBookEvent orderEvent =
                   mapper.treeToValue(node, CoinjarWebSocketBookEvent.class);
               return this.handleOrderbookEvent(orderEvent);
-            });
+            })
+        .filter(orderbook -> !orderbook.getBids().isEmpty() && !orderbook.getAsks().isEmpty());
   }
 
   @Override

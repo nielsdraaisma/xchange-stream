@@ -14,11 +14,12 @@ public class CoinjarWebSocketSubscribeMessage {
   public final Payload payload;
 
   @JsonProperty("ref")
-  public final Integer ref = 0;
+  public final Integer ref;
 
-  public CoinjarWebSocketSubscribeMessage(String topic, String token) {
+  public CoinjarWebSocketSubscribeMessage(String topic, String token, Integer ref) {
     this.topic = topic;
     this.payload = new Payload(token);
+    this.ref = ref;
   }
 
   public class Payload {
