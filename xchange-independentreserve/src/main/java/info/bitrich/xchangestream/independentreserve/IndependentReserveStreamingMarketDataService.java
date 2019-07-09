@@ -120,6 +120,13 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
         .forEach(
             currencyPair -> {
               try {
+                if (!bids.containsKey(currencyPair)) {
+                  bids.put(currencyPair, Maps.newHashMap());
+                }
+                if (!asks.containsKey(currencyPair)) {
+                  asks.put(currencyPair, Maps.newHashMap());
+                }
+
                 Map<String, LimitOrder> bids = this.bids.get(currencyPair);
                 Map<String, LimitOrder> asks = this.asks.get(currencyPair);
                 logger.info("Loading {} orderbook after subscribing to stream", currencyPair);
@@ -157,12 +164,6 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
             + currencyPair.base.toString().toLowerCase()
             + "-"
             + currencyPair.counter.toString().toLowerCase();
-    if (!bids.containsKey(currencyPair)) {
-      bids.put(currencyPair, Maps.newHashMap());
-    }
-    if (!asks.containsKey(currencyPair)) {
-      asks.put(currencyPair, Maps.newHashMap());
-    }
     return service
         .subscribeChannel(channelName)
         .map(

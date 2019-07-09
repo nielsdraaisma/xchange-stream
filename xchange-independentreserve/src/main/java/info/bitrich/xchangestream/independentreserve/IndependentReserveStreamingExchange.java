@@ -4,8 +4,6 @@ import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import org.knowm.xchange.Exchange;
-import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.independentreserve.IndependentReserveExchange;
 
