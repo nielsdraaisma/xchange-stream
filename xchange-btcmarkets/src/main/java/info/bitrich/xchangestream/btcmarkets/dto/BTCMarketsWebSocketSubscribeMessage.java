@@ -2,7 +2,6 @@ package info.bitrich.xchangestream.btcmarkets.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
 import info.bitrich.xchangestream.btcmarkets.service.BTCMarketsStreamingDigest;
 
 import java.util.List;
@@ -28,15 +27,11 @@ public class BTCMarketsWebSocketSubscribeMessage {
   @JsonProperty("signature")
   public final String signature;
 
-  public BTCMarketsWebSocketSubscribeMessage(String marketId, String channel) {
-    this.marketIds = Lists.newArrayList(marketId);
-    this.channels = Lists.newArrayList(channel);
-    this.timestamp = null;
-    this.key = null;
-    this.signature = null;
-  }
-
-  private BTCMarketsWebSocketSubscribeMessage(
+  /**
+   * @param marketIds All market id's to subscribe on, any current subscriptions will be dropped if
+   *     not in the current message.
+   */
+  public BTCMarketsWebSocketSubscribeMessage(
       List<String> marketIds, List<String> channels, Long timestamp, String key, String signature) {
     this.marketIds = marketIds;
     this.channels = channels;

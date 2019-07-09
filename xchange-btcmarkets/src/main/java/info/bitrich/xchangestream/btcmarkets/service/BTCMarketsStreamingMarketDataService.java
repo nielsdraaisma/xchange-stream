@@ -13,9 +13,9 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 
-public class BTCMarketsStreamingMarketDataService implements StreamingMarketDataService {
+import static info.bitrich.xchangestream.btcmarkets.service.BTCMarketsStreamingService.CHANNEL_ORDERBOOK;
 
-  private static final String CHANNEL_ORDERBOOK = "orderbook";
+public class BTCMarketsStreamingMarketDataService implements StreamingMarketDataService {
 
   private final ObjectMapper mapper = StreamingObjectMapperHelper.getObjectMapper();
 
@@ -46,6 +46,9 @@ public class BTCMarketsStreamingMarketDataService implements StreamingMarketData
               }
             });
   }
+
+
+
 
   @Override
   public Observable<Ticker> getTicker(CurrencyPair currencyPair, Object... args) {
