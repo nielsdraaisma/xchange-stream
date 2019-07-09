@@ -6,9 +6,9 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="io.netty" level="warn"/>
-        <Logger name="info.bitrich.xchangestream.btcmarkets" level="DEBUG"/>
-        <Root level="debug">
+        <Logger name="io.netty" level="trace"/>
+        <Logger name="info.bitrich.xchangestream" level="trace"/>
+        <Root level="trace">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

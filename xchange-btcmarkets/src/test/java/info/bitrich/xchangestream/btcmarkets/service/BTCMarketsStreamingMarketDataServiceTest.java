@@ -29,7 +29,7 @@ public class BTCMarketsStreamingMarketDataServiceTest {
         exchange
             .getStreamingMarketDataService()
             .getOrderBook(CurrencyPair.BTC_AUD)
-            .take(messageToReceive)
+//            .take(messageToReceive)
             .forEach(
                 orderBook -> {
                   logger.info("First btc ask: {}", orderBook.getAsks().get(0));
@@ -40,7 +40,7 @@ public class BTCMarketsStreamingMarketDataServiceTest {
         exchange
             .getStreamingMarketDataService()
             .getOrderBook(CurrencyPair.ETH_AUD)
-            .take(messageToReceive)
+//            .take(messageToReceive)
             .forEach(
                 orderBook -> {
                   logger.info("First eth ask: {}", orderBook.getAsks().get(0));
@@ -48,13 +48,13 @@ public class BTCMarketsStreamingMarketDataServiceTest {
                 });
 
     try {
-      Thread.sleep(10000);
+      Thread.sleep(30000);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
 
-    btcOrderBookDisposable.dispose();
-    ethOrderBookDisposable.dispose();
+//    btcOrderBookDisposable.dispose();
+//    ethOrderBookDisposable.dispose();
     //    tradesDisposable.dispose();
     exchange.disconnect().subscribe(() -> logger.info("Disconnected from the Exchange"));
   }

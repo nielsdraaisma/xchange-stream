@@ -10,14 +10,14 @@ public class BTCMarketsWebSocketUnsubscribeMessage {
   @JsonProperty("messageType")
   public final String messageType = "removeSubscription";
 
-  @JsonProperty("marketIds  ")
+  @JsonProperty("marketIds")
   public final List<String> marketIds;
 
   @JsonProperty("channels")
   public final List<String> channels;
 
-  public BTCMarketsWebSocketUnsubscribeMessage(String channel) {
-    this.marketIds = Lists.newArrayList();
+  public BTCMarketsWebSocketUnsubscribeMessage(String channel, String market) {
+    this.marketIds = Lists.newArrayList(market);
     this.channels = Lists.newArrayList(channel);
   }
 }
