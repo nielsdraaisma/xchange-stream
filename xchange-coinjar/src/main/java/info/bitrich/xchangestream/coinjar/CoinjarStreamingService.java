@@ -30,7 +30,7 @@ public class CoinjarStreamingService extends JsonNettyStreamingService {
                   .forEach(
                       (ll) -> {
                         if (this.isSocketOpen()) {
-                          this.sendObjectMessage(CoinjarHeartbeat.INSTANCE);
+                          this.sendObjectMessage(new CoinjarHeartbeat(refCount.incrementAndGet()));
                         }
                       });
             });

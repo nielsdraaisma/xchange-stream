@@ -3,6 +3,7 @@ package info.bitrich.xchangestream.coinjar.service;
 import info.bitrich.xchangestream.coinjar.CoinjarStreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
+import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.disposables.Disposable;
 import org.junit.Test;
 import org.knowm.xchange.ExchangeSpecification;
@@ -25,23 +26,23 @@ public class CoinjarStreamingMarketDataServiceTest {
     StreamingExchange exchange =
         StreamingExchangeFactory.INSTANCE.createExchange(defaultExchangeSpecification);
     exchange.connect().blockingAwait();
+    StreamingMarketDataService streamingMarketDataService =
+        exchange.getStreamingMarketDataService();
 
     Disposable btcOrderBookDisposable =
-        exchange
-            .getStreamingMarketDataService()
+        streamingMarketDataService
             .getOrderBook(CurrencyPair.BTC_AUD)
-            .take(messageToReceive)
-            .forEach(orderBook -> logger.info("Got orderbook {}", orderBook));
+            //            .take(messageToReceive)
+            .forEach(orderBook -> logger.info("Got BTCAUD orderbook"));
 
     Disposable ethOrderBookDisposable =
-        exchange
-            .getStreamingMarketDataService()
+        streamingMarketDataService
             .getOrderBook(CurrencyPair.ETH_AUD)
-            .take(messageToReceive)
-            .forEach(orderBook -> logger.info("Got orderbook {}", orderBook));
+            //            .take(messageToReceive)
+            .forEach(orderBook -> logger.info("Got ETHAUD orderbook"));
 
     try {
-      Thread.sleep(10000);
+      Thread.sleep(120000);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
