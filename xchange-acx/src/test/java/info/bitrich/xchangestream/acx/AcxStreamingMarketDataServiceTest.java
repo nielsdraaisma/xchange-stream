@@ -2,7 +2,6 @@ package info.bitrich.xchangestream.acx;
 
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
-import io.reactivex.disposables.Disposable;
 import org.junit.Test;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.currency.CurrencyPair;
@@ -18,8 +17,6 @@ public class AcxStreamingMarketDataServiceTest {
 
   @Test
   public void runTest() {
-    final int messageToReceive = 2;
-
     Properties properties = new Properties();
     try {
       properties.load(this.getClass().getResourceAsStream("secret.keys"));
@@ -40,22 +37,12 @@ public class AcxStreamingMarketDataServiceTest {
         StreamingExchangeFactory.INSTANCE.createExchange(defaultExchangeSpecification);
     exchange.connect().blockingAwait();
 
-    Disposable btcOrderBookDisposable =
-        exchange
-            .getStreamingMarketDataService()
-            .getOrderBook(CurrencyPair.BTC_AUD)
-            //            .take(messageToReceive)
-            .forEach(
-                orderBook -> {
-                  logger.info("Bids: {}", orderBook.getAsks().size());
-                  logger.info("Asks: {}", orderBook.getBids().size());
-                });
-
-    try {
-      Thread.sleep(30000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    exchange
+        .getStreamingMarketDataService()
+        .getOrderBook(CurrencyPair.BTC_AUD)
+        .test()
+        .awaitCount(10)
+        .assertNoErrors();
 
     exchange.disconnect().subscribe(() -> logger.info("Disconnected from the Exchange"));
   }

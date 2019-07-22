@@ -8,18 +8,11 @@ import io.reactivex.disposables.Disposable;
 import org.junit.Test;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CoinjarStreamingMarketDataServiceTest {
 
-  private static final Logger logger =
-      LoggerFactory.getLogger(CoinjarStreamingMarketDataServiceTest.class);
-
   @Test
   public void runTest() {
-    final int messageToReceive = 10;
-
     ExchangeSpecification defaultExchangeSpecification =
         new ExchangeSpecification(CoinjarStreamingExchange.class);
 
@@ -32,21 +25,18 @@ public class CoinjarStreamingMarketDataServiceTest {
     Disposable btcOrderBookDisposable =
         streamingMarketDataService
             .getOrderBook(CurrencyPair.BTC_AUD)
-            //            .take(messageToReceive)
-            .forEach(orderBook -> logger.info("Got BTCAUD orderbook"));
+            .test()
+            .awaitCount(10)
+            .assertNoErrors();
+
+    btcOrderBookDisposable.dispose();
 
     Disposable ethOrderBookDisposable =
         streamingMarketDataService
             .getOrderBook(CurrencyPair.ETH_AUD)
-            //            .take(messageToReceive)
-            .forEach(orderBook -> logger.info("Got ETHAUD orderbook"));
-
-    try {
-      Thread.sleep(120000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+            .test()
+            .awaitCount(10)
+            .assertNoErrors();
     ethOrderBookDisposable.dispose();
-    btcOrderBookDisposable.dispose();
   }
 }
