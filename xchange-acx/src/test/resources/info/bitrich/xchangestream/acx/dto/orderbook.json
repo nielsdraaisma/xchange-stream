@@ -1,0 +1,14 @@
+{
+  "orderbook": {
+    "action": "add",
+    "order": {
+      "id": 3252,
+      "timestamp": 1402898864,
+      "type": "ask",
+      "volume": "1.0",
+      "price": "3500.0",
+      "market": "btcaud",
+      "ord_type": "limit"
+    }
+  }
+}
