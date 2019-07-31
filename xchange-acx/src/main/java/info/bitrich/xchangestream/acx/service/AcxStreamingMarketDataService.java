@@ -51,17 +51,13 @@ public class AcxStreamingMarketDataService implements StreamingMarketDataService
       orderBook
           .getBids()
           .forEach(
-              bid -> {
-                bidOrders.put(Long.valueOf(bid.getId()), bid);
-              });
+              bid -> bidOrders.put(Long.valueOf(bid.getId()), bid));
       bids.put(currencyPair, bidOrders);
       final Map<Long, LimitOrder> askOrders = Maps.newConcurrentMap();
       orderBook
           .getAsks()
           .forEach(
-              bid -> {
-                askOrders.put(Long.valueOf(bid.getId()), bid);
-              });
+              ask -> askOrders.put(Long.valueOf(ask.getId()), ask));
       asks.put(currencyPair, askOrders);
     }
     if (limitOrder.getType() == Order.OrderType.BID) {
@@ -85,7 +81,7 @@ public class AcxStreamingMarketDataService implements StreamingMarketDataService
   }
 
   @Override
-  public Observable<OrderBook> getOrderBook(CurrencyPair currencyPair, Object... args) {
+  public Observable<OrderBook> getOrderBook(final CurrencyPair currencyPair, Object... args) {
     return service
         .subscribeChannel(CHANNEL_ORDERBOOK)
         .map(e -> mapper.treeToValue(e, AcxWebSocketOrderbookMessage.class))

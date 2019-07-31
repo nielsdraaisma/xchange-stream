@@ -16,7 +16,7 @@ public class AcxStreamingMarketDataServiceTest {
       LoggerFactory.getLogger(AcxStreamingMarketDataServiceTest.class);
 
   @Test
-  public void runTest() {
+  public void runTest() throws InterruptedException {
     Properties properties = new Properties();
     try {
       properties.load(this.getClass().getResourceAsStream("secret.keys"));
@@ -40,8 +40,27 @@ public class AcxStreamingMarketDataServiceTest {
     exchange
         .getStreamingMarketDataService()
         .getOrderBook(CurrencyPair.BTC_AUD)
+        .map(
+            ob -> {
+              logger.info("Got BTC/AUD orderbook {}", ob);
+              return ob;
+            })
+        .take(10)
         .test()
-        .awaitCount(10)
+        .await()
+        .assertNoErrors();
+
+    exchange
+        .getStreamingMarketDataService()
+        .getOrderBook(CurrencyPair.ETH_AUD)
+        .map(
+            ob -> {
+              logger.info("Got ETH/AUD orderbook {}", ob);
+              return ob;
+            })
+        .take(10)
+        .test()
+        .await()
         .assertNoErrors();
 
     exchange.disconnect().subscribe(() -> logger.info("Disconnected from the Exchange"));
