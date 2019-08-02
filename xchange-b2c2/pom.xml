@@ -23,7 +23,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.nielsdraaisma</groupId>
+            <groupId>com.github.nielsdraaisma.xchange</groupId>
             <artifactId>xchange-b2c2</artifactId>
             <version>7b3dec5b4</version>
             <exclusions>
