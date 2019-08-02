@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.github.nielsdraaisma</groupId>
             <artifactId>xchange-b2c2</artifactId>
-            <version>e3b61e37e5</version>
+            <version>7b3dec5b4</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
