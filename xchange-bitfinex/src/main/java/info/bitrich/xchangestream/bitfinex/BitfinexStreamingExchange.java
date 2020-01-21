@@ -2,13 +2,11 @@ package info.bitrich.xchangestream.bitfinex;
 
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.StreamingExchange;
-
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-
 import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.ExchangeSpecification;
-import org.knowm.xchange.bitfinex.v1.BitfinexExchange;
+import org.knowm.xchange.bitfinex.BitfinexExchange;
 
 /**
  * Created by Lukas Zaoralek on 7.11.17.
@@ -64,6 +62,11 @@ public class BitfinexStreamingExchange extends BitfinexExchange implements Strea
     @Override
     public Observable<Object> connectionSuccess() {
         return streamingService.subscribeConnectionSuccess();
+    }
+
+    @Override
+    public Observable<Object> connectionIdle() {
+        return streamingService.subscribeIdle();
     }
 
     @Override
