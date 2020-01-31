@@ -14,7 +14,7 @@
         <module>service-netty</module>
         <module>service-wamp</module>
         <module>service-core</module>
-<!--        <module>xchange-acx</module>-->
+        <module>xchange-acx</module>
         <module>xchange-bitstamp</module>
         <module>xchange-cexio</module>
         <module>xchange-okcoin</module>
