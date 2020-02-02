@@ -5,7 +5,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CoinjarStreamingAdaptersTest {
+public class CoinjarStreamingAdaptersTest {
 
   @Test
   public void testAdaptTopicToCurrencyPair() {

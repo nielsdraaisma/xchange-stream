@@ -130,6 +130,8 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
                 Map<String, LimitOrder> bids = this.bids.get(currencyPair);
                 Map<String, LimitOrder> asks = this.asks.get(currencyPair);
                 logger.info("Loading {} orderbook after subscribing to stream", currencyPair);
+                bids.clear();
+                asks.clear();
                 OrderBook orderBook = this.marketDataService.getOrderBook(currencyPair);
                 orderBook
                     .getBids()
@@ -137,8 +139,6 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
                         bid -> {
                           if (bid.getOriginalAmount().compareTo(BigDecimal.ZERO) > 0) {
                             bids.put(bid.getId(), bid);
-                          } else {
-                            bids.remove(bid.getId());
                           }
                         });
                 orderBook
@@ -147,8 +147,6 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
                         bid -> {
                           if (bid.getOriginalAmount().compareTo(BigDecimal.ZERO) > 0) {
                             asks.put(bid.getId(), bid);
-                          } else {
-                            asks.remove(bid.getId());
                           }
                         });
               } catch (IOException e) {
