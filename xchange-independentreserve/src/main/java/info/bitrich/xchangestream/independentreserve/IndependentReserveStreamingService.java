@@ -49,6 +49,9 @@ public class IndependentReserveStreamingService extends JsonNettyStreamingServic
 
   @Override
   public String getSubscribeMessage(String channelName, Object... args) throws IOException {
+    if ( channelName.equals("Subscriptions")){
+      return null;
+    }
     return objectMapper.writeValueAsString(
         new IndependentReserveWebSocketSubscribeMessage(Lists.newArrayList(channelName)));
   }
