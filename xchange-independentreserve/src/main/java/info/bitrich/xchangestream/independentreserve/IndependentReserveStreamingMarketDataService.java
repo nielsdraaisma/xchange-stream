@@ -61,63 +61,69 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
   private OrderBook handleOrderbookEvent(
       CurrencyPair currencyPair, IndependentReserveWebSocketOrderEvent event) {
 
+  final CurrencyPair pairFromEvent =
+            IndependentReserveStreamingAdapters.adaptChannelToCurrencyPair(event.channel);
+
   AtomicLong nonce = noncesPerChannel.computeIfAbsent(event.channel, s -> new AtomicLong(event.nonce));
-  if (nonce.getAndIncrement() != event.nonce) {
-      logger.warn("Did not get expected nonce from channel, reconnecting");
+  long expectedNonce = nonce.getAndIncrement();
+  long nonceFromEvent = event.nonce;
+  if (nonceFromEvent != expectedNonce) {
+      logger.warn("Did not get expected nonce from channel - expected {} but got {}, clearing {} book and reconnecting", expectedNonce, nonceFromEvent, currencyPair);
       noncesPerChannel.remove(event.channel);
+      bids.get(pairFromEvent).clear();
+      asks.get(pairFromEvent).clear();
       this.service.resubscribeChannels();
-  }
+  } else {
 
-  final Order.OrderType orderType;
-    if (event.data.orderType.equals("LimitBid")) {
-      orderType = Order.OrderType.BID;
-    } else {
-      orderType = Order.OrderType.ASK;
-    }
-    final CurrencyPair pairFromEvent =
-        IndependentReserveStreamingAdapters.adaptChannelToCurrencyPair(event.channel);
-    final Map<String, LimitOrder> orderMap;
-    if (orderType == Order.OrderType.BID) {
-      orderMap = bids.get(pairFromEvent);
-    } else {
-      orderMap = asks.get(pairFromEvent);
-    }
-    LimitOrder order;
-    switch (event.event) {
-      case IndependentReserveWebSocketOrderEvent.NEW_ORDER:
-        order =
-            new LimitOrder(
-                orderType,
-                event.data.volume,
-                currencyPair,
-                event.data.orderGuid,
-                null,
-                event.data.price);
+      final Order.OrderType orderType;
+      if (event.data.orderType.equals("LimitBid")) {
+          orderType = Order.OrderType.BID;
+      } else {
+          orderType = Order.OrderType.ASK;
+      }
+      final Map<String, LimitOrder> orderMap;
+      if (orderType == Order.OrderType.BID) {
+          orderMap = bids.get(pairFromEvent);
+      } else {
+          orderMap = asks.get(pairFromEvent);
+      }
+      LimitOrder order;
+      switch (event.event) {
+          case IndependentReserveWebSocketOrderEvent.NEW_ORDER:
+              order =
+                      new LimitOrder(
+                              orderType,
+                              event.data.volume,
+                              currencyPair,
+                              event.data.orderGuid,
+                              null,
+                              event.data.price);
 
-        orderMap.put(event.data.orderGuid, order);
-        break;
-      case IndependentReserveWebSocketOrderEvent.ORDER_CANCELED:
-        orderMap.remove(event.data.orderGuid);
-        break;
-      case IndependentReserveWebSocketOrderEvent.ORDER_CHANGED:
-        // Fully filled orders are treated as removal
-        if (event.data.volume.compareTo(BigDecimal.ZERO) == 0) {
-          orderMap.remove(event.data.orderGuid);
-          break;
-        }
-        order = orderMap.get(event.data.orderGuid);
-        if (order != null) {
-          order =
-              new LimitOrder(
-                  order.getType(),
-                  event.data.volume,
-                  currencyPair,
-                  event.data.orderGuid,
-                  null,
-                  order.getLimitPrice());
-          orderMap.put(event.data.orderGuid, order);
-        }
-        break;
+              orderMap.put(event.data.orderGuid, order);
+              break;
+          case IndependentReserveWebSocketOrderEvent.ORDER_CANCELED:
+              orderMap.remove(event.data.orderGuid);
+              break;
+          case IndependentReserveWebSocketOrderEvent.ORDER_CHANGED:
+              // Fully filled orders are treated as removal
+              if (event.data.volume.compareTo(BigDecimal.ZERO) == 0) {
+                  orderMap.remove(event.data.orderGuid);
+                  break;
+              }
+              order = orderMap.get(event.data.orderGuid);
+              if (order != null) {
+                  order =
+                          new LimitOrder(
+                                  order.getType(),
+                                  event.data.volume,
+                                  currencyPair,
+                                  event.data.orderGuid,
+                                  null,
+                                  order.getLimitPrice());
+                  orderMap.put(event.data.orderGuid, order);
+              }
+              break;
+      }
     }
     return new OrderBook(
         null,
@@ -131,31 +137,32 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
         .forEach(
             currencyPair -> {
               try {
-                bids.put(currencyPair, Maps.newHashMap());
-                asks.put(currencyPair, Maps.newHashMap());
-
+                this.bids.putIfAbsent(currencyPair, Maps.newConcurrentMap());
+                this.asks.putIfAbsent(currencyPair, Maps.newConcurrentMap());
                 Map<String, LimitOrder> bids = this.bids.get(currencyPair);
                 Map<String, LimitOrder> asks = this.asks.get(currencyPair);
-                bids.clear();
-                asks.clear();
-                OrderBook orderBook = this.marketDataService.getOrderBook(currencyPair);
-                orderBook
-                    .getBids()
-                    .forEach(
-                        bid -> {
-                          if (bid.getOriginalAmount().compareTo(BigDecimal.ZERO) > 0) {
-                            bids.put(bid.getId(), bid);
-                          }
-                        });
-                orderBook
-                    .getAsks()
-                    .forEach(
-                        bid -> {
-                          if (bid.getOriginalAmount().compareTo(BigDecimal.ZERO) > 0) {
-                            asks.put(bid.getId(), bid);
-                          }
-                        });
-                  logger.info("Loaded {} orderbook after subscribing to stream now have {} bids, {} asks", currencyPair, bids.size(), asks.size());
+                if ( bids.isEmpty() || asks.isEmpty()){
+                    bids.clear();
+                    asks.clear();
+                    OrderBook orderBook = this.marketDataService.getOrderBook(currencyPair);
+                    orderBook
+                            .getBids()
+                            .forEach(
+                                    bid -> {
+                                        if (bid.getOriginalAmount().compareTo(BigDecimal.ZERO) > 0) {
+                                            bids.put(bid.getId(), bid);
+                                        }
+                                    });
+                    orderBook
+                            .getAsks()
+                            .forEach(
+                                    bid -> {
+                                        if (bid.getOriginalAmount().compareTo(BigDecimal.ZERO) > 0) {
+                                            asks.put(bid.getId(), bid);
+                                        }
+                                    });
+                    logger.info("Loaded {} orderbook after subscribing to stream now have {} bids, {} asks", currencyPair, bids.size(), asks.size());
+                }
               } catch (IOException e) {
                 logger.warn("Caught exception while loading {} orderbook", currencyPair, e);
               }
@@ -176,7 +183,8 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
               IndependentReserveWebSocketOrderEvent orderEvent =
                   mapper.treeToValue(node, IndependentReserveWebSocketOrderEvent.class);
               return this.handleOrderbookEvent(currencyPair, orderEvent);
-            });
+            })
+        .filter(book -> !book.getBids().isEmpty() && !book.getAsks().isEmpty());
   }
 
   @Override
