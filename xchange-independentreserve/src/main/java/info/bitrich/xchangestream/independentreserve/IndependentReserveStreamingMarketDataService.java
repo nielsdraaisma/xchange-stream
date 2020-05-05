@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class IndependentReserveStreamingMarketDataService implements StreamingMarketDataService {
 
@@ -32,6 +33,8 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
 
   private final IndependentReserveStreamingService service;
   private final MarketDataService marketDataService;
+
+  private final Map<String, AtomicLong> noncesPerChannel = Maps.newConcurrentMap();
 
   private final Map<CurrencyPair, Map<String, LimitOrder>> bids = Maps.newHashMap();
   private final Map<CurrencyPair, Map<String, LimitOrder>> asks = Maps.newHashMap();
@@ -57,7 +60,15 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
 
   private OrderBook handleOrderbookEvent(
       CurrencyPair currencyPair, IndependentReserveWebSocketOrderEvent event) {
-    final Order.OrderType orderType;
+
+  AtomicLong nonce = noncesPerChannel.computeIfAbsent(event.channel, s -> new AtomicLong(event.nonce));
+  if (nonce.getAndIncrement() != event.nonce) {
+      logger.warn("Did not get expected nonce from channel, reconnecting");
+      noncesPerChannel.remove(event.channel);
+      this.service.resubscribeChannels();
+  }
+
+  final Order.OrderType orderType;
     if (event.data.orderType.equals("LimitBid")) {
       orderType = Order.OrderType.BID;
     } else {
@@ -120,16 +131,11 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
         .forEach(
             currencyPair -> {
               try {
-                if (!bids.containsKey(currencyPair)) {
-                  bids.put(currencyPair, Maps.newHashMap());
-                }
-                if (!asks.containsKey(currencyPair)) {
-                  asks.put(currencyPair, Maps.newHashMap());
-                }
+                bids.put(currencyPair, Maps.newHashMap());
+                asks.put(currencyPair, Maps.newHashMap());
 
                 Map<String, LimitOrder> bids = this.bids.get(currencyPair);
                 Map<String, LimitOrder> asks = this.asks.get(currencyPair);
-                logger.info("Loading {} orderbook after subscribing to stream", currencyPair);
                 bids.clear();
                 asks.clear();
                 OrderBook orderBook = this.marketDataService.getOrderBook(currencyPair);
@@ -149,6 +155,7 @@ public class IndependentReserveStreamingMarketDataService implements StreamingMa
                             asks.put(bid.getId(), bid);
                           }
                         });
+                  logger.info("Loaded {} orderbook after subscribing to stream now have {} bids, {} asks", currencyPair, bids.size(), asks.size());
               } catch (IOException e) {
                 logger.warn("Caught exception while loading {} orderbook", currencyPair, e);
               }
